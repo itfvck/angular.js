@@ -135,6 +135,7 @@ describe('input', function() {
 
 
   describe('IE placeholder input events', function() {
+    // Support: IE 9-11 only
     //IE fires an input event whenever a placeholder visually changes, essentially treating it as a value
     //Events:
     //  placeholder attribute change: *input*
@@ -418,7 +419,7 @@ describe('input', function() {
 
             scope.field = 'fake field';
             scope.$watch('field', function() {
-              // We need to use _originalTrigger since trigger is modified by Angular Scenario.
+              // We need to use _originalTrigger since trigger is modified by AngularJS Scenario.
               inputElm._originalTrigger('change');
             });
             scope.$apply();
@@ -2082,7 +2083,7 @@ describe('input', function() {
       var dates = [
         // Validate date
         ['00:00:00.0000+01:01', false],             // date must be specified
-        ['2010.06.15T00:00:00.0000+01:01', false],  // date must use dash seperator
+        ['2010.06.15T00:00:00.0000+01:01', false],  // date must use dash separator
         ['x2010-06-15T00:00:00.0000+01:01', false], // invalid leading characters
 
         // Validate year
@@ -2110,9 +2111,9 @@ describe('input', function() {
 
         // Validate time
         ['2010-01-01', false],                      // time must be specified
-        ['2010-01-0101:00:00.0000+01:01', false],   // missing date time seperator
-        ['2010-01-01V01:00:00.0000+01:01', false],  // invalid date time seperator
-        ['2010-01-01T01-00-00.0000+01:01', false],  // time must use colon seperator
+        ['2010-01-0101:00:00.0000+01:01', false],   // missing date time separator
+        ['2010-01-01V01:00:00.0000+01:01', false],  // invalid date time separator
+        ['2010-01-01T01-00-00.0000+01:01', false],  // time must use colon separator
 
         // Validate hour
         ['2010-01-01T01:00:00.0000+01:01', true],   // hour has two digits
@@ -2141,7 +2142,7 @@ describe('input', function() {
         // Validate milliseconds
         ['2010-01-01T01:00:00+01:01', false],       // millisecond must be specified
         ['2010-01-01T01:00:00.-0000+01:01', false], // millisecond must be positive
-        ['2010-01-01T01:00:00:0000+01:01', false],  // millisecond must use period seperator
+        ['2010-01-01T01:00:00:0000+01:01', false],  // millisecond must use period separator
         ['2010-01-01T01:00:00.+01:01', false],      // millisecond has too few digits
 
         // Validate timezone
@@ -2163,9 +2164,9 @@ describe('input', function() {
 
         // Validate timezone minute offset
         ['2010-06-15T00:00:00.0000+00:-01', false], // timezone minute offset must be positive
-        ['2010-06-15T00:00:00.0000+00.01', false],  // timezone minute offset must use colon seperator
-        ['2010-06-15T00:00:00.0000+0101', false],   // timezone minute offset must use colon seperator
-        ['2010-06-15T00:00:00.0000+010', false],    // timezone minute offset must use colon seperator
+        ['2010-06-15T00:00:00.0000+00.01', false],  // timezone minute offset must use colon separator
+        ['2010-06-15T00:00:00.0000+0101', false],   // timezone minute offset must use colon separator
+        ['2010-06-15T00:00:00.0000+010', false],    // timezone minute offset must use colon separator
         ['2010-06-15T00:00:00.0000+00', false],     // timezone minute offset has too few digits
         ['2010-06-15T00:00:00.0000+00:', false],    // timezone minute offset has too few digits
         ['2010-06-15T00:00:00.0000+00:0', false],   // timezone minute offset has too few digits
@@ -2786,6 +2787,13 @@ describe('input', function() {
             helper.changeInputValueTo('3.5');
             expect(inputElm).toBeValid();
             expect($rootScope.value).toBe(3.5);
+
+            // 1.16 % 0.01 === 0.009999999999999896
+            // 1.16 * 100  === 115.99999999999999
+            $rootScope.step = 0.01;
+            helper.changeInputValueTo('1.16');
+            expect(inputElm).toBeValid();
+            expect($rootScope.value).toBe(1.16);
           }
         );
       });
@@ -3655,7 +3663,9 @@ describe('input', function() {
 
         it('should correctly validate even in cases where the JS floating point arithmetic fails',
           function() {
-            var inputElm = helper.compileInput('<input type="range" ng-model="value" step="0.1" />');
+            $rootScope.step = 0.1;
+            var inputElm = helper.compileInput(
+                '<input type="range" ng-model="value" step="{{step}}" />');
             var ngModel = inputElm.controller('ngModel');
 
             expect(inputElm.val()).toBe('');
@@ -3680,6 +3690,13 @@ describe('input', function() {
             helper.changeInputValueTo('3.5');
             expect(inputElm).toBeValid();
             expect($rootScope.value).toBe(3.5);
+
+            // 1.16 % 0.01 === 0.009999999999999896
+            // 1.16 * 100  === 115.99999999999999
+            $rootScope.step = 0.01;
+            helper.changeInputValueTo('1.16');
+            expect(inputElm).toBeValid();
+            expect($rootScope.value).toBe(1.16);
           }
         );
       }
@@ -3965,9 +3982,7 @@ describe('input', function() {
       expect($rootScope.color).toBe('blue');
     });
 
-
-    // We generally use strict comparison. This tests behavior we cannot change without a BC
-    it('should use non-strict comparison the evaluate checked-ness', function() {
+    it('should treat the value as a string when evaluating checked-ness', function() {
       var inputElm = helper.compileInput(
           '<input type="radio" ng-model="model" value="0" />');
 
@@ -3975,7 +3990,7 @@ describe('input', function() {
       expect(inputElm[0].checked).toBe(true);
 
       $rootScope.$apply('model = 0');
-      expect(inputElm[0].checked).toBe(true);
+      expect(inputElm[0].checked).toBe(false);
     });
 
 
@@ -4196,6 +4211,26 @@ describe('input', function() {
       expect(inputElm[0].getAttribute('value')).toBe('something');
     });
 
+    it('should clear the "dom" value property and attribute when the value is undefined', function() {
+      var inputElm = helper.compileInput('<input type="text" ng-value="value">');
+
+      $rootScope.$apply('value = "something"');
+
+      expect(inputElm[0].value).toBe('something');
+      expect(inputElm[0].getAttribute('value')).toBe('something');
+
+      $rootScope.$apply(function() {
+        delete $rootScope.value;
+      });
+
+      expect(inputElm[0].value).toBe('');
+      // Support: IE 9-11
+      // In IE it is not possible to remove the `value` attribute from an input element.
+      if (!msie) {
+        expect(inputElm[0].getAttribute('value')).toBeNull();
+      }
+    });
+
     they('should update the $prop "value" property and attribute after the bound expression changes', {
       input: '<input type="text" ng-value="value">',
       textarea: '<textarea ng-value="value"></textarea>'
@@ -4226,6 +4261,18 @@ describe('input', function() {
 
       browserTrigger(inputElm[2], 'click');
       expect($rootScope.selected).toBe(1);
+    });
+
+
+    it('should use strict comparison between model and value', function() {
+      $rootScope.selected = false;
+      var inputElm = helper.compileInput('<input type="radio" ng-model="selected" ng-value="false">' +
+                   '<input type="radio" ng-model="selected" ng-value="\'\'">' +
+                   '<input type="radio" ng-model="selected" ng-value="0">');
+
+      expect(inputElm[0].checked).toBe(true);
+      expect(inputElm[1].checked).toBe(false);
+      expect(inputElm[2].checked).toBe(false);
     });
 
 

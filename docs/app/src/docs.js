@@ -1,14 +1,12 @@
 'use strict';
 
-angular.module('DocsController', [])
+angular.module('DocsController', ['currentVersionData'])
 
 .controller('DocsController', [
           '$scope', '$rootScope', '$location', '$window', '$cookies',
-              'NG_PAGES', 'NG_NAVIGATION', 'NG_VERSION',
+              'NG_PAGES', 'NG_NAVIGATION', 'CURRENT_NG_VERSION',
   function($scope, $rootScope, $location, $window, $cookies,
-              NG_PAGES, NG_NAVIGATION, NG_VERSION) {
-
-  $scope.docsVersion = NG_VERSION.isSnapshot ? 'snapshot' : NG_VERSION.version;
+              NG_PAGES, NG_NAVIGATION, CURRENT_NG_VERSION) {
 
   $scope.navClass = function(navItem) {
     return {
@@ -60,12 +58,12 @@ angular.module('DocsController', [])
    Initialize
    ***********************************/
 
-  $scope.versionNumber = angular.version.full;
-  $scope.version = angular.version.full + '  ' + angular.version.codeName;
+  $scope.versionNumber = CURRENT_NG_VERSION.full;
+  $scope.version = CURRENT_NG_VERSION.full + ' ' + CURRENT_NG_VERSION.codeName;
   $scope.loading = 0;
 
 
-  var INDEX_PATH = /^(\/|\/index[^\.]*.html)$/;
+  var INDEX_PATH = /^(\/|\/index[^.]*.html)$/;
   if (!$location.path() || INDEX_PATH.test($location.path())) {
     $location.path('/api').replace();
   }

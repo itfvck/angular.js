@@ -182,7 +182,7 @@
  *  There are two main differences:
  *
  * - $q is integrated with the {@link ng.$rootScope.Scope} Scope model observation
- *   mechanism in angular, which means faster propagation of resolution or rejection into your
+ *   mechanism in AngularJS, which means faster propagation of resolution or rejection into your
  *   models and avoiding unnecessary browser repaints, which would result in flickering UI.
  * - Q has many more features than $q, but that comes at a cost of bytes. $q is tiny, but contains
  *   all the important functionality needed for common async tasks.
@@ -239,6 +239,7 @@ function $QProvider() {
    *
    * @description
    * Retrieves or overrides whether to generate an error when a rejected promise is not handled.
+   * This feature is enabled by default.
    *
    * @param {boolean=} value Whether to generate an error when a rejected promise is not handled.
    * @returns {boolean|ng.$qProvider} Current value when called without a new value or self for
@@ -380,7 +381,11 @@ function qFactory(nextTick, exceptionHandler, errorOnUnhandledRejections) {
       if (!toCheck.pur) {
         toCheck.pur = true;
         var errorMessage = 'Possibly unhandled rejection: ' + toDebugString(toCheck.value);
-        exceptionHandler(errorMessage);
+        if (toCheck.value instanceof Error) {
+          exceptionHandler(toCheck.value, errorMessage);
+        } else {
+          exceptionHandler(errorMessage);
+        }
       }
     }
   }
